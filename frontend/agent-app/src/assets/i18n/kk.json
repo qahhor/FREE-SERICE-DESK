@@ -1,0 +1,132 @@
+{
+  "app": {
+    "name": "ServiceDesk Платформасы"
+  },
+  "common": {
+    "success": "Сәтті",
+    "error": "Қате",
+    "save": "Сақтау",
+    "cancel": "Болдырмау",
+    "delete": "Жою",
+    "edit": "Өңдеу",
+    "create": "Құру",
+    "search": "Іздеу",
+    "filter": "Сүзгі",
+    "loading": "Жүктелуде...",
+    "no.results": "Нәтижелер табылмады",
+    "confirm.delete": "Бұл элементті жойғыңыз келе ме?",
+    "close": "Жабу",
+    "yes": "Иә",
+    "no": "Жоқ",
+    "back": "Артқа",
+    "next": "Келесі",
+    "previous": "Алдыңғы",
+    "actions": "Әрекеттер",
+    "view": "Көру",
+    "details": "Мәліметтер"
+  },
+  "auth": {
+    "login": "Кіру",
+    "logout": "Шығу",
+    "register": "Тіркелу",
+    "email": "Электрондық пошта",
+    "password": "Құпия сөз",
+    "confirm.password": "Құпия сөзді растаңыз",
+    "forgot.password": "Құпия сөзді ұмыттыңыз ба?",
+    "remember.me": "Мені есте сақта",
+    "login.success": "Сәтті кірдіңіз",
+    "login.failed": "Email немесе құпия сөз дұрыс емес",
+    "register.success": "Тіркелу сәтті аяқталды",
+    "logout.success": "Жүйеден шықтыңыз"
+  },
+  "validation": {
+    "required": "Бұл өріс міндетті",
+    "email.invalid": "Email форматы дұрыс емес",
+    "password.min": "Құпия сөз кемінде 8 таңбадан тұруы керек",
+    "password.mismatch": "Құпия сөздер сәйкес келмейді"
+  },
+  "user": {
+    "title": "Пайдаланушылар",
+    "profile": "Профиль",
+    "settings": "Параметрлер",
+    "first.name": "Аты",
+    "last.name": "Тегі",
+    "phone": "Телефон",
+    "role": "Рөл",
+    "status": "Күй",
+    "create": "Пайдаланушы құру"
+  },
+  "ticket": {
+    "title": "Өтінімдер",
+    "create": "Өтінім құру",
+    "subject": "Тақырып",
+    "description": "Сипаттама",
+    "status": "Күй",
+    "priority": "Маңыздылық",
+    "type": "Түрі",
+    "channel": "Арна",
+    "assignee": "Орындаушы",
+    "requester": "Өтініш беруші",
+    "team": "Топ",
+    "category": "Санат",
+    "tags": "Тегтер",
+    "due.date": "Мерзімі",
+    "created": "Құрылған",
+    "updated": "Жаңартылған",
+    "comments": "Пікірлер",
+    "attachments": "Тіркемелер",
+    "history": "Тарих",
+    "watchers": "Бақылаушылар",
+    "reply": "Жауап беру",
+    "assign": "Тағайындау",
+    "close": "Жабу",
+    "reopen": "Қайта ашу",
+    "escalate": "Күшейту"
+  },
+  "dashboard": {
+    "title": "Басқару тақтасы",
+    "open.tickets": "Ашық өтінімдер",
+    "pending.tickets": "Күтудегі өтінімдер",
+    "resolved.today": "Бүгін шешілген",
+    "avg.response.time": "Орташа жауап беру уақыты",
+    "satisfaction": "Қанағаттану",
+    "my.tickets": "Менің өтінімдерім",
+    "unassigned": "Тағайындалмаған",
+    "overdue": "Мерзімі өткен"
+  },
+  "project": {
+    "title": "Жобалар",
+    "create": "Жоба құру",
+    "name": "Атауы",
+    "description": "Сипаттама",
+    "members": "Мүшелер"
+  },
+  "team": {
+    "title": "Топтар",
+    "create": "Топ құру",
+    "name": "Атауы",
+    "members": "Мүшелер",
+    "lead": "Жетекші"
+  },
+  "knowledge": {
+    "title": "Білім қоры",
+    "articles": "Мақалалар",
+    "categories": "Санаттар",
+    "search": "Мақалаларды іздеу",
+    "create.article": "Мақала құру"
+  },
+  "notifications": {
+    "title": "Хабарландырулар",
+    "mark.read": "Оқылған деп белгілеу",
+    "mark.all.read": "Барлығын оқылған деп белгілеу",
+    "no.notifications": "Хабарландырулар жоқ"
+  },
+  "reports": {
+    "title": "Есептер",
+    "generate": "Есеп құру",
+    "export": "Экспорттау",
+    "period": "Кезең",
+    "from": "Бастап",
+    "to": "Дейін"
+  }
+}

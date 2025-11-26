@@ -1,0 +1,81 @@
+{
+  "app": {
+    "name": "ServiceDesk Платформа"
+  },
+  "common": {
+    "success": "Успешно",
+    "error": "Ошибка",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "create": "Создать",
+    "search": "Поиск",
+    "filter": "Фильтр",
+    "loading": "Загрузка...",
+    "no.results": "Результаты не найдены",
+    "confirm.delete": "Вы уверены, что хотите удалить этот элемент?"
+  },
+  "auth": {
+    "login": "Войти",
+    "logout": "Выйти",
+    "register": "Регистрация",
+    "email": "Электронная почта",
+    "password": "Пароль",
+    "confirm.password": "Подтвердите пароль",
+    "forgot.password": "Забыли пароль?",
+    "remember.me": "Запомнить меня",
+    "login.success": "Вход выполнен успешно",
+    "login.failed": "Неверный email или пароль",
+    "register.success": "Регистрация прошла успешно",
+    "logout.success": "Вы вышли из системы"
+  },
+  "validation": {
+    "required": "Это поле обязательно",
+    "email.invalid": "Неверный формат email",
+    "password.min": "Пароль должен содержать минимум 8 символов",
+    "password.mismatch": "Пароли не совпадают"
+  },
+  "user": {
+    "profile": "Профиль",
+    "settings": "Настройки",
+    "first.name": "Имя",
+    "last.name": "Фамилия",
+    "phone": "Телефон",
+    "role": "Роль",
+    "status": "Статус"
+  },
+  "ticket": {
+    "title": "Заявки",
+    "create": "Создать заявку",
+    "subject": "Тема",
+    "description": "Описание",
+    "status": "Статус",
+    "priority": "Приоритет",
+    "type": "Тип",
+    "channel": "Канал",
+    "assignee": "Исполнитель",
+    "requester": "Заявитель",
+    "team": "Команда",
+    "category": "Категория",
+    "tags": "Теги",
+    "due.date": "Срок выполнения",
+    "created": "Создано",
+    "updated": "Обновлено",
+    "comments": "Комментарии",
+    "attachments": "Вложения",
+    "history": "История",
+    "watchers": "Наблюдатели"
+  },
+  "dashboard": {
+    "title": "Панель управления",
+    "open.tickets": "Открытые заявки",
+    "pending.tickets": "Ожидающие заявки",
+    "resolved.today": "Решено сегодня",
+    "avg.response.time": "Среднее время ответа",
+    "satisfaction": "Удовлетворенность"
+  },
+  "project": {
+    "title": "Проекты"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "servicedesk-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ServiceDesk Platform Frontend Workspace",
+  "scripts": {
+    "start:agent": "cd agent-app && npm start",
+    "start:admin": "cd admin-app && npm start",
+    "start:portal": "cd customer-portal && npm start",
+    "build:agent": "cd agent-app && npm run build",
+    "build:admin": "cd admin-app && npm run build",
+    "build:portal": "cd customer-portal && npm run build",
+    "build:all": "npm run build:agent && npm run build:admin && npm run build:portal",
+    "test:all": "cd agent-app && npm test && cd ../admin-app && npm test"
+  }
+}
