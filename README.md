@@ -9,12 +9,19 @@ Open-source Service Desk Platform for Customer Support - Built with Java Spring 
 
 ## Features
 
-### Core Features
+### Core ITSM Features
 - **Ticket Management**: Create, assign, track, and resolve support tickets
-- **Omnichannel Support**: Email, Telegram, WhatsApp, Web Widget, Phone
-- **Knowledge Base**: Markdown articles with full-text search (Elasticsearch)
-- **SLA Management**: Configurable SLA policies with escalation
-- **Automation**: Rules engine for auto-assignment and workflows
+- **SLA Management**: Configurable SLA policies with escalation rules
+- **Asset/CMDB Management**: Track IT assets, relationships, and maintenance
+- **Change Management**: Change requests with approval workflows
+- **Problem Management**: Root cause analysis with known error database
+
+### Omnichannel Support
+- **Email Integration**: Auto-create tickets from emails
+- **Telegram Bot**: Customer support via Telegram
+- **WhatsApp Business**: WhatsApp integration
+- **Live Chat**: Embeddable web widget
+- **Customer Portal**: Self-service portal
 
 ### AI-Powered
 - **AI Agent**: Integration with OpenAI/Claude for intelligent responses
@@ -22,80 +29,90 @@ Open-source Service Desk Platform for Customer Support - Built with Java Spring 
 - **Smart Categorization**: Automatic ticket classification
 - **Sentiment Analysis**: Customer sentiment detection
 
-### Analytics
+### Analytics & Reporting
 - **Dashboards**: Real-time metrics and KPIs
-- **Reports**: CSAT, NPS, FRT, ART, and custom reports
-- **Export**: CSV, Excel, API for BI tools
+- **Reports**: CSAT, NPS, FRT, ART, SLA compliance
+- **Export**: CSV, Excel, PDF formats
 
 ### Multi-language Support
-- English (en)
-- Russian (ru)
-- Uzbek (uz)
-- Kazakh (kk)
-- Arabic (ar) - RTL support
+- English (en), Russian (ru), Uzbek (uz), Kazakh (kk), Arabic (ar) - RTL support
 
 ## Tech Stack
 
-### Backend
-- **Java 17+** with **Spring Boot 3.2**
-- **PostgreSQL** - Primary database
-- **Redis** - Caching and sessions
-- **Elasticsearch** - Full-text search
+### Backend (Microservices)
+| Service | Port | Description |
+|---------|------|-------------|
+| API Gateway | 8080 | Single entry point |
+| Ticket Service | 8081 | Core ticket management |
+| Channel Service | 8082 | Omnichannel integration |
+| Knowledge Service | 8083 | Knowledge base |
+| Notification Service | 8084 | Email/Push notifications |
+| AI Service | 8085 | LLM/RAG integration |
+| Marketplace Service | 8086 | Module marketplace |
+| Analytics Service | 8087 | Metrics & Reporting |
+
+### Infrastructure
+- **PostgreSQL 16** - Primary database
+- **Redis 7** - Caching and sessions
+- **Elasticsearch 8** - Full-text search
 - **RabbitMQ** - Message queue
+- **MinIO** - Object storage (S3 compatible)
 
 ### Frontend
-- **Angular 17+**
-- **Angular Material / PrimeNG**
-- **NgRx** - State management
-- **WebSocket** - Real-time updates
+- **Angular 17+** - Agent and Admin apps
+- **Customer Portal** - Self-service
+- **Web Widget** - Embeddable chat
 
 ### DevOps
 - **Docker** & **Docker Compose**
-- **Kubernetes** with Helm charts
-- **GitHub Actions** - CI/CD
 - **Prometheus** & **Grafana** - Monitoring
 
 ## Quick Start
 
 ### Prerequisites
-- Java 17+
-- Maven 3.8+
 - Docker & Docker Compose
-- Node.js 18+ (for frontend)
+- Java 17+ (for development)
+- Maven 3.8+ (for development)
 
-### 1. Clone the Repository
+### Production Deployment
+
 ```bash
+# 1. Clone the repository
 git clone https://github.com/your-org/servicedesk-platform.git
 cd servicedesk-platform
+
+# 2. Configure environment
+cp .env.example .env
+# Edit .env - set JWT_SECRET (required!)
+
+# 3. Start all services
+docker-compose up -d
+
+# 4. Access the application
+# API: http://localhost:8080
+# Grafana: http://localhost:3000
 ```
 
-### 2. Start Infrastructure Services
+### Development
+
 ```bash
-# Start PostgreSQL, Redis, and other services
-docker-compose -f docker-compose.dev.yml up -d
+# Start infrastructure + all ports exposed
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# Additional dev ports:
+# - PostgreSQL: 5432
+# - Redis: 6379
+# - RabbitMQ UI: 15672
+# - Elasticsearch: 9200
+# - MinIO Console: 9001
+# - MailHog: 8025
 ```
-
-### 3. Build and Run Backend
-```bash
-cd backend
-mvn clean install -DskipTests
-
-# Run ticket-service
-cd ticket-service
-mvn spring-boot:run
-```
-
-### 4. Access the Application
-- **API**: http://localhost:8080
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **MailHog** (dev email): http://localhost:8025
 
 ### Default Credentials
 | Role | Email | Password |
 |------|-------|----------|
 | Admin | admin@servicedesk.local | admin123 |
 | Agent | agent1@servicedesk.local | admin123 |
-| Customer | customer@example.com | admin123 |
 
 ## Project Structure
 
@@ -103,30 +120,29 @@ mvn spring-boot:run
 servicedesk-platform/
 ├── backend/
 │   ├── common-lib/           # Shared utilities and DTOs
-│   ├── ticket-service/       # Core ticket management (Main API)
-│   ├── channel-service/      # Omnichannel adapter
-│   ├── telephony-service/    # VoIP/SIP integration
-│   ├── ai-service/           # LLM/RAG integration
-│   ├── analytics-service/    # Metrics & Reporting
-│   ├── knowledge-service/    # KB & Search
-│   ├── notification-service/ # Email/Push notifications
-│   └── api-gateway/          # Spring Cloud Gateway
+│   ├── api-gateway/          # Spring Cloud Gateway (port 8080)
+│   ├── ticket-service/       # Core ticket management (port 8081)
+│   ├── channel-service/      # Email, Telegram, WhatsApp, Live Chat (port 8082)
+│   ├── knowledge-service/    # Knowledge base & Search (port 8083)
+│   ├── notification-service/ # Email/Push notifications (port 8084)
+│   ├── ai-service/           # LLM/RAG integration (port 8085)
+│   ├── marketplace-service/  # Module marketplace (port 8086)
+│   ├── analytics-service/    # Metrics & Reporting (port 8087)
+│   └── modules/              # Pluggable modules
 │
 ├── frontend/
 │   ├── agent-app/            # Agent interface
-│   ├── admin-app/            # Admin panel
 │   ├── customer-portal/      # Self-service portal
-│   └── web-widget/           # Embeddable chat widget
+│   └── widget/               # Embeddable chat widget
 │
 ├── infrastructure/
-│   ├── kubernetes/           # K8s manifests & Helm charts
-│   ├── terraform/            # Infrastructure as Code
 │   └── prometheus/           # Monitoring configs
 │
-├── docs/                     # Documentation
-├── scripts/                  # Utility scripts
-├── docker-compose.yml        # Full stack deployment
-└── docker-compose.dev.yml    # Development services only
+├── scripts/
+│   └── init-databases.sql    # DB initialization
+│
+├── docker-compose.yml        # Production (2 ports: 8080, 3000)
+└── docker-compose.dev.yml    # Development (all ports)
 ```
 
 ## API Documentation
@@ -151,121 +167,87 @@ Content-Type: application/json
 {
   "subject": "Cannot login to application",
   "description": "Getting error 401 when trying to login",
-  "projectId": "f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+  "projectId": "uuid",
   "priority": "HIGH",
   "type": "INCIDENT"
 }
 ```
 
-### List Tickets
-```http
-GET /api/v1/tickets?status=OPEN&priority=HIGH&page=0&size=20
-Authorization: Bearer <token>
-```
+### API Endpoints
+| Endpoint | Description |
+|----------|-------------|
+| `/api/v1/auth/*` | Authentication |
+| `/api/v1/tickets/*` | Ticket management |
+| `/api/v1/users/*` | User management |
+| `/api/v1/projects/*` | Project management |
+| `/api/v1/sla/*` | SLA policies |
+| `/api/v1/assets/*` | Asset management |
+| `/api/v1/changes/*` | Change management |
+| `/api/v1/problems/*` | Problem management |
+| `/api/v1/knowledge/*` | Knowledge base |
+| `/api/v1/notifications/*` | Notifications |
+| `/api/v1/analytics/*` | Analytics & Reports |
 
-For full API documentation, see [API.md](docs/API.md) or access Swagger UI at `/swagger-ui.html`.
+**Swagger UI**: http://localhost:8080/swagger-ui.html
 
 ## Configuration
 
-### Environment Variables
+### Required Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `JWT_SECRET` | JWT signing secret (min 32 chars) |
+
+### Optional Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `DB_HOST` | PostgreSQL host | localhost |
-| `DB_PORT` | PostgreSQL port | 5432 |
-| `DB_NAME` | Database name | servicedesk |
-| `DB_USERNAME` | Database user | servicedesk |
-| `DB_PASSWORD` | Database password | servicedesk |
-| `REDIS_HOST` | Redis host | localhost |
-| `REDIS_PORT` | Redis port | 6379 |
-| `JWT_SECRET` | JWT signing secret | (auto-generated) |
-| `CORS_ORIGINS` | Allowed CORS origins | http://localhost:4200 |
+| `POSTGRES_PASSWORD` | Database password | servicedesk |
+| `RABBITMQ_PASSWORD` | RabbitMQ password | servicedesk |
+| `MAIL_HOST` | SMTP server | smtp.gmail.com |
+| `MAIL_USERNAME` | SMTP username | - |
+| `MAIL_PASSWORD` | SMTP password | - |
+| `OPENAI_API_KEY` | OpenAI API key | - |
+| `ANTHROPIC_API_KEY` | Anthropic API key | - |
 
-### Application Properties
-See [application.yml](backend/ticket-service/src/main/resources/application.yml) for all configuration options.
+See `.env.example` for full list.
 
 ## Development
 
 ### Running Tests
 ```bash
-# Unit tests
+cd backend
+
+# Run all tests
 mvn test
 
-# Integration tests
-mvn verify -P integration-tests
-
-# With coverage
+# Run with coverage
 mvn test jacoco:report
 ```
 
-### Code Style
-We follow Google Java Style Guide. Run the formatter:
+### Building JAR
 ```bash
-mvn spotless:apply
+cd backend
+mvn clean package -DskipTests
+
+# JAR location: target/*.jar
 ```
 
 ### Database Migrations
 Migrations are managed with Flyway:
 ```bash
-# Create a new migration
-touch backend/ticket-service/src/main/resources/db/migration/V3__your_migration.sql
+# Migrations are in:
+# backend/*/src/main/resources/db/migration/
 
-# Run migrations
+# Run migrations automatically on startup
+# or manually:
 mvn flyway:migrate
 ```
 
-## Deployment
+## Monitoring
 
-### Docker
-```bash
-# Build and run all services
-docker-compose up -d --build
-
-# View logs
-docker-compose logs -f ticket-service
-```
-
-### Kubernetes
-```bash
-# Using Helm
-helm install servicedesk ./infrastructure/kubernetes/helm-charts/servicedesk \
-  --namespace servicedesk \
-  --create-namespace \
-  --set postgres.password=your-secure-password
-```
-
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## Roadmap
-
-### Phase 1 (MVP) - Q1 2025
-- [x] Core ticket management
-- [x] User authentication (JWT)
-- [x] Basic REST API
-- [ ] Email channel integration
-- [ ] Web widget
-- [ ] Basic dashboard
-
-### Phase 2 - Q2 2025
-- [ ] Telegram Bot integration
-- [ ] WhatsApp Business API
-- [ ] Knowledge base with Elasticsearch
-- [ ] AI-powered responses
-- [ ] SLA management
-
-### Phase 3 - Q3 2025
-- [ ] VoIP/Telephony integration
-- [ ] Advanced analytics
-- [ ] Mobile apps (Flutter)
-- [ ] Multi-tenant architecture
+- **Grafana**: http://localhost:3000 (admin/admin)
+- **Prometheus**: Internal (exposed in dev mode on 9090)
 
 ## License
 
@@ -273,17 +255,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- **Documentation**: [docs.servicedesk.io](https://docs.servicedesk.io)
 - **Issues**: [GitHub Issues](https://github.com/your-org/servicedesk-platform/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/your-org/servicedesk-platform/discussions)
 
-## Acknowledgments
-
-- [Spring Boot](https://spring.io/projects/spring-boot)
-- [Angular](https://angular.io/)
-- [PostgreSQL](https://www.postgresql.org/)
-- [Elasticsearch](https://www.elastic.co/)
-
 ---
 
-Made with love by [Green White Solutions](https://greenwhite.uz)
+Made with ❤️ by [Green White Solutions](https://greenwhite.uz)
