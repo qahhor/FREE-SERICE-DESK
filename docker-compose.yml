@@ -1,5 +1,8 @@
 version: '3.8'
 
+# Production configuration - only essential ports exposed
+# For development with all ports, use: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
 services:
   # PostgreSQL Database
   postgres:
@@ -9,10 +12,8 @@ services:
     environment:
       POSTGRES_DB: servicedesk
       POSTGRES_USER: servicedesk
-      POSTGRES_PASSWORD: servicedesk
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-servicedesk}
       PGDATA: /var/lib/postgresql/data/pgdata
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
@@ -30,8 +31,6 @@ services:
     container_name: servicedesk-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -52,9 +51,6 @@ services:
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - cluster.name=servicedesk-cluster
-    ports:
-      - "9200:9200"
-      - "9300:9300"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     healthcheck:
@@ -72,10 +68,7 @@ services:
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: servicedesk
-      RABBITMQ_DEFAULT_PASS: servicedesk
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-servicedesk}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -94,10 +87,7 @@ services:
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: servicedesk
-      MINIO_ROOT_PASSWORD: servicedesk123
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-servicedesk123}
     volumes:
       - minio_data:/data
     healthcheck:
@@ -108,7 +98,9 @@ services:
     networks:
       - servicedesk-network
 
-  # API Gateway (Entry Point)
+  # ===========================================
+  # API GATEWAY - ЕДИНСТВЕННАЯ ТОЧКА ВХОДА
+  # ===========================================
   api-gateway:
     build:
       context: ./backend
@@ -121,9 +113,11 @@ services:
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
     ports:
-      - "8080:8080"
+      - "8080:8080"  # <-- Единственный порт для API
     depends_on:
       redis:
+        condition: service_healthy
+      ticket-service:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/actuator/health || exit 1"]
@@ -132,6 +126,10 @@ services:
       retries: 5
     networks:
       - servicedesk-network
+
+  # ===========================================
+  # ВНУТРЕННИЕ СЕРВИСЫ (без внешних портов)
+  # ===========================================
 
   # Ticket Service (Core Service)
   ticket-service:
@@ -147,13 +145,10 @@ services:
       DB_PORT: 5432
       DB_NAME: servicedesk
       DB_USERNAME: servicedesk
-      DB_PASSWORD: servicedesk
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-servicedesk}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
-      CORS_ORIGINS: http://localhost:4200,http://localhost:4201,http://localhost:4202
-    ports:
-      - "8081:8081"
     depends_on:
       postgres:
         condition: service_healthy
@@ -180,16 +175,14 @@ services:
       DB_PORT: 5432
       DB_NAME: servicedesk_channels
       DB_USERNAME: servicedesk
-      DB_PASSWORD: servicedesk
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-servicedesk}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: servicedesk
-      RABBITMQ_PASSWORD: servicedesk
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-servicedesk}
       JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
-    ports:
-      - "8082:8082"
     depends_on:
       postgres:
         condition: service_healthy
@@ -218,17 +211,15 @@ services:
       DB_PORT: 5432
       DB_NAME: servicedesk_knowledge
       DB_USERNAME: servicedesk
-      DB_PASSWORD: servicedesk
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-servicedesk}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       ELASTICSEARCH_URIS: http://elasticsearch:9200
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: servicedesk
-      RABBITMQ_PASSWORD: servicedesk
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-servicedesk}
       JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
-    ports:
-      - "8083:8083"
     depends_on:
       postgres:
         condition: service_healthy
@@ -257,20 +248,18 @@ services:
       DB_PORT: 5432
       DB_NAME: servicedesk_notifications
       DB_USERNAME: servicedesk
-      DB_PASSWORD: servicedesk
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-servicedesk}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: servicedesk
-      RABBITMQ_PASSWORD: servicedesk
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-servicedesk}
       MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
       MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USERNAME: ${MAIL_USERNAME:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
-    ports:
-      - "8084:8084"
     depends_on:
       postgres:
         condition: service_healthy
@@ -301,8 +290,6 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
-    ports:
-      - "8085:8085"
     depends_on:
       redis:
         condition: service_healthy
@@ -329,17 +316,15 @@ services:
       DB_PORT: 5432
       DB_NAME: servicedesk_marketplace
       DB_USERNAME: servicedesk
-      DB_PASSWORD: servicedesk
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-servicedesk}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: servicedesk
-      RABBITMQ_PASSWORD: servicedesk
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-servicedesk}
       MODULES_PATH: /app/modules
       JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
-    ports:
-      - "8086:8086"
     depends_on:
       postgres:
         condition: service_healthy
@@ -370,16 +355,14 @@ services:
       DB_PORT: 5432
       DB_NAME: servicedesk
       DB_USERNAME: servicedesk
-      DB_PASSWORD: servicedesk
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-servicedesk}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: servicedesk
-      RABBITMQ_PASSWORD: servicedesk
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-servicedesk}
       JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
-    ports:
-      - "8087:8087"
     depends_on:
       postgres:
         condition: service_healthy
@@ -393,7 +376,11 @@ services:
     networks:
       - servicedesk-network
 
-  # Prometheus Monitoring
+  # ===========================================
+  # МОНИТОРИНГ
+  # ===========================================
+
+  # Prometheus Monitoring (internal)
   prometheus:
     image: prom/prometheus:latest
     container_name: servicedesk-prometheus
@@ -401,8 +388,6 @@ services:
     volumes:
       - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -415,11 +400,11 @@ services:
     container_name: servicedesk-grafana
     restart: unless-stopped
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
       GF_USERS_ALLOW_SIGN_UP: "false"
     ports:
-      - "3000:3000"
+      - "3000:3000"  # <-- Порт для мониторинга
     volumes:
       - grafana_data:/var/lib/grafana
     depends_on:

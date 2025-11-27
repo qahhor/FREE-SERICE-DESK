@@ -1,42 +1,66 @@
 version: '3.8'
 
-# Development-only services (without application)
-# Use this for local development when running services from IDE
+# Development overrides - exposes all ports for debugging
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 services:
+  # Infrastructure ports for local development
   postgres:
-    image: postgres:16-alpine
-    container_name: servicedesk-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: servicedesk
-      POSTGRES_USER: servicedesk
-      POSTGRES_PASSWORD: servicedesk
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U servicedesk -d servicedesk"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   redis:
-    image: redis:7-alpine
-    container_name: servicedesk-redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
+  elasticsearch:
+    ports:
+      - "9200:9200"
+
+  rabbitmq:
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # Management UI
+
+  minio:
+    ports:
+      - "9000:9000"
+      - "9001:9001"  # Console
+
+  # Application service ports for debugging
+  ticket-service:
+    ports:
+      - "8081:8081"
+
+  channel-service:
+    ports:
+      - "8082:8082"
+
+  knowledge-service:
+    ports:
+      - "8083:8083"
+
+  notification-service:
+    ports:
+      - "8084:8084"
+
+  ai-service:
+    ports:
+      - "8085:8085"
+
+  marketplace-service:
+    ports:
+      - "8086:8086"
+
+  analytics-service:
+    ports:
+      - "8087:8087"
+
+  prometheus:
+    ports:
+      - "9090:9090"
+
+  # MailHog for email testing
   mailhog:
     image: mailhog/mailhog
     container_name: servicedesk-mailhog
@@ -44,7 +68,5 @@ services:
     ports:
       - "1025:1025"  # SMTP
       - "8025:8025"  # Web UI
-
-volumes:
-  postgres_data:
-  redis_data:
+    networks:
+      - servicedesk-network
