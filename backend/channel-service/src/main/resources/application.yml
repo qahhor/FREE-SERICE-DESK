@@ -47,6 +47,18 @@ servicedesk:
   telegram:
     poll-interval: 5000
 
+  whatsapp:
+    api-url: https://graph.facebook.com/
+    default-api-version: v18.0
+    max-retry-count: 3
+    retry-delay: 5000
+
+  livechat:
+    enabled: true
+    max-concurrent-chats: 10
+    idle-timeout: 300000
+    auto-assign: true
+
   jwt:
     secret: ${JWT_SECRET:your-256-bit-secret-key-here-for-jwt-signing}
     expiration: 86400000
