@@ -71,4 +71,46 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID>, JpaSpecif
     @Query("SELECT t FROM Ticket t WHERE t.deleted = false AND t.status NOT IN ('CLOSED', 'CANCELLED') " +
            "AND t.updatedAt < :lastActivityBefore")
     List<Ticket> findStaleTickets(@Param("lastActivityBefore") LocalDateTime lastActivityBefore);
+
+    // SLA-related queries
+    @Query("SELECT t FROM Ticket t WHERE t.deleted = false " +
+           "AND t.firstResponseDue IS NOT NULL AND t.firstResponseDue < :beforeTime " +
+           "AND t.firstResponseAt IS NULL " +
+           "AND t.status NOT IN ('CLOSED', 'CANCELLED', 'RESOLVED')")
+    List<Ticket> findTicketsWithFirstResponseDueBefore(@Param("beforeTime") LocalDateTime beforeTime);
+
+    @Query("SELECT t FROM Ticket t WHERE t.deleted = false " +
+           "AND t.resolutionDue IS NOT NULL AND t.resolutionDue < :beforeTime " +
+           "AND t.resolvedAt IS NULL " +
+           "AND t.status NOT IN ('CLOSED', 'CANCELLED', 'RESOLVED')")
+    List<Ticket> findTicketsWithResolutionDueBefore(@Param("beforeTime") LocalDateTime beforeTime);
+
+    @Query("SELECT t FROM Ticket t WHERE t.deleted = false " +
+           "AND ((t.firstResponseDue IS NOT NULL AND t.firstResponseDue < :now AND t.firstResponseAt IS NULL) " +
+           "OR (t.resolutionDue IS NOT NULL AND t.resolutionDue < :now AND t.resolvedAt IS NULL)) " +
+           "AND t.status NOT IN ('CLOSED', 'CANCELLED', 'RESOLVED')")
+    List<Ticket> findTicketsWithSlaBreached(@Param("now") LocalDateTime now);
+
+    @Query("SELECT t FROM Ticket t WHERE t.deleted = false AND t.slaBreached = true")
+    Page<Ticket> findBreachedTickets(Pageable pageable);
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.deleted = false AND t.slaBreached = true " +
+           "AND t.createdAt BETWEEN :startDate AND :endDate")
+    long countBreachedTickets(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.deleted = false " +
+           "AND t.firstResponseAt IS NOT NULL AND t.firstResponseDue IS NOT NULL " +
+           "AND t.firstResponseAt <= t.firstResponseDue " +
+           "AND t.createdAt BETWEEN :startDate AND :endDate")
+    long countFirstResponseWithinSla(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.deleted = false " +
+           "AND t.resolvedAt IS NOT NULL AND t.resolutionDue IS NOT NULL " +
+           "AND t.resolvedAt <= t.resolutionDue " +
+           "AND t.createdAt BETWEEN :startDate AND :endDate")
+    long countResolutionWithinSla(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT t FROM Ticket t WHERE t.deleted = false " +
+           "AND t.slaPolicy.id = :policyId")
+    Page<Ticket> findBySlaPolicyId(@Param("policyId") UUID policyId, Pageable pageable);
 }

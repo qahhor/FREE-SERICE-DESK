@@ -98,6 +98,32 @@ public class Ticket extends BaseEntity {
     @Column(name = "csat_comment")
     private String csatComment;
 
+    // SLA fields
+    @Column(name = "first_response_due")
+    private LocalDateTime firstResponseDue;
+
+    @Column(name = "resolution_due")
+    private LocalDateTime resolutionDue;
+
+    @Column(name = "next_response_due")
+    private LocalDateTime nextResponseDue;
+
+    @Column(name = "sla_breached")
+    @Builder.Default
+    private Boolean slaBreached = false;
+
+    @Column(name = "first_response_breached")
+    @Builder.Default
+    private Boolean firstResponseBreached = false;
+
+    @Column(name = "resolution_breached")
+    @Builder.Default
+    private Boolean resolutionBreached = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sla_policy_id")
+    private SlaPolicy slaPolicy;
+
     @ElementCollection
     @CollectionTable(name = "ticket_tags", joinColumns = @JoinColumn(name = "ticket_id"))
     @Column(name = "tag")
