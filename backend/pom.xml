@@ -37,6 +37,8 @@
         <module>knowledge-service</module>
         <module>notification-service</module>
         <module>api-gateway</module>
+        <module>marketplace-service</module>
+        <module>modules/currency-module</module>
     </modules>
 
     <properties>
