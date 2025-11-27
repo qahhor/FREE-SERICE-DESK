@@ -140,6 +140,46 @@ services:
     networks:
       - servicedesk-network
 
+  # Marketplace Service
+  marketplace-service:
+    build:
+      context: ./backend/marketplace-service
+      dockerfile: Dockerfile
+    container_name: servicedesk-marketplace
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: servicedesk_marketplace
+      DB_USERNAME: servicedesk
+      DB_PASSWORD: servicedesk
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: servicedesk
+      RABBITMQ_PASSWORD: servicedesk
+      MODULES_PATH: /app/modules
+    ports:
+      - "8086:8086"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - modules_data:/app/modules
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8086/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - servicedesk-network
+
   # Prometheus Monitoring
   prometheus:
     image: prom/prometheus:latest
@@ -182,6 +222,7 @@ volumes:
   minio_data:
   prometheus_data:
   grafana_data:
+  modules_data:
 
 networks:
   servicedesk-network:
