@@ -15,6 +15,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U servicedesk -d servicedesk"]
       interval: 10s
@@ -107,15 +108,41 @@ services:
     networks:
       - servicedesk-network
 
-  # Ticket Service (Main API)
-  ticket-service:
+  # API Gateway (Entry Point)
+  api-gateway:
     build:
-      context: ./backend/ticket-service
-      dockerfile: Dockerfile
-    container_name: servicedesk-api
+      context: ./backend
+      dockerfile: api-gateway/Dockerfile
+    container_name: servicedesk-gateway
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
+    ports:
+      - "8080:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - servicedesk-network
+
+  # Ticket Service (Core Service)
+  ticket-service:
+    build:
+      context: ./backend
+      dockerfile: ticket-service/Dockerfile
+    container_name: servicedesk-tickets
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8081
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: servicedesk
@@ -123,17 +150,166 @@ services:
       DB_PASSWORD: servicedesk
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      JWT_SECRET: your-very-secure-jwt-secret-key-at-least-32-characters-long
+      JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
       CORS_ORIGINS: http://localhost:4200,http://localhost:4201,http://localhost:4202
     ports:
-      - "8080:8080"
+      - "8081:8081"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - servicedesk-network
+
+  # Channel Service (Email, Telegram, WhatsApp, Live Chat)
+  channel-service:
+    build:
+      context: ./backend
+      dockerfile: channel-service/Dockerfile
+    container_name: servicedesk-channels
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: servicedesk_channels
+      DB_USERNAME: servicedesk
+      DB_PASSWORD: servicedesk
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: servicedesk
+      RABBITMQ_PASSWORD: servicedesk
+      JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8082/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - servicedesk-network
+
+  # Knowledge Service (Knowledge Base)
+  knowledge-service:
+    build:
+      context: ./backend
+      dockerfile: knowledge-service/Dockerfile
+    container_name: servicedesk-knowledge
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: servicedesk_knowledge
+      DB_USERNAME: servicedesk
+      DB_PASSWORD: servicedesk
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ELASTICSEARCH_URIS: http://elasticsearch:9200
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: servicedesk
+      RABBITMQ_PASSWORD: servicedesk
+      JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - servicedesk-network
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./backend
+      dockerfile: notification-service/Dockerfile
+    container_name: servicedesk-notifications
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: servicedesk_notifications
+      DB_USERNAME: servicedesk
+      DB_PASSWORD: servicedesk
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: servicedesk
+      RABBITMQ_PASSWORD: servicedesk
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8084/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - servicedesk-network
+
+  # AI Service
+  ai-service:
+    build:
+      context: ./backend
+      dockerfile: ai-service/Dockerfile
+    container_name: servicedesk-ai
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ELASTICSEARCH_URIS: http://elasticsearch:9200
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
+    ports:
+      - "8085:8085"
+    depends_on:
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8085/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -143,8 +319,8 @@ services:
   # Marketplace Service
   marketplace-service:
     build:
-      context: ./backend/marketplace-service
-      dockerfile: Dockerfile
+      context: ./backend
+      dockerfile: marketplace-service/Dockerfile
     container_name: servicedesk-marketplace
     restart: unless-stopped
     environment:
@@ -161,6 +337,7 @@ services:
       RABBITMQ_USERNAME: servicedesk
       RABBITMQ_PASSWORD: servicedesk
       MODULES_PATH: /app/modules
+      JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
     ports:
       - "8086:8086"
     depends_on:
@@ -173,7 +350,43 @@ services:
     volumes:
       - modules_data:/app/modules
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8086/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8086/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - servicedesk-network
+
+  # Analytics Service
+  analytics-service:
+    build:
+      context: ./backend
+      dockerfile: analytics-service/Dockerfile
+    container_name: servicedesk-analytics
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: servicedesk
+      DB_USERNAME: servicedesk
+      DB_PASSWORD: servicedesk
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: servicedesk
+      RABBITMQ_PASSWORD: servicedesk
+      JWT_SECRET: ${JWT_SECRET:-your-very-secure-jwt-secret-key-at-least-32-characters-long}
+    ports:
+      - "8087:8087"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8087/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5

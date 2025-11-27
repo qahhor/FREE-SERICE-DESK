@@ -10,16 +10,16 @@ COPY pom.xml /app/parent-pom.xml
 COPY common-lib/pom.xml /app/common-lib/pom.xml
 COPY common-lib/src /app/common-lib/src
 
-# Copy ticket-service
-COPY ticket-service/pom.xml /app/ticket-service/pom.xml
-COPY ticket-service/src /app/ticket-service/src
+# Copy notification-service
+COPY notification-service/pom.xml /app/notification-service/pom.xml
+COPY notification-service/src /app/notification-service/src
 
 # Build common-lib first
 WORKDIR /app
 RUN mvn -f parent-pom.xml -pl common-lib install -DskipTests
 
-# Build ticket-service
-RUN mvn -f parent-pom.xml -pl ticket-service package -DskipTests
+# Build notification-service
+RUN mvn -f parent-pom.xml -pl notification-service package -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:17-jre-alpine
@@ -30,7 +30,7 @@ WORKDIR /app
 RUN addgroup -S servicedesk && adduser -S servicedesk -G servicedesk
 
 # Copy the built jar
-COPY --from=build /app/ticket-service/target/*.jar app.jar
+COPY --from=build /app/notification-service/target/*.jar app.jar
 
 # Set ownership
 RUN chown -R servicedesk:servicedesk /app
@@ -39,11 +39,11 @@ USER servicedesk
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-    CMD wget --spider -q http://localhost:8081/actuator/health || exit 1
+    CMD wget --spider -q http://localhost:8084/actuator/health || exit 1
 
 # JVM options
-ENV JAVA_OPTS="-Xms512m -Xmx1g -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError"
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError"
 
-EXPOSE 8081
+EXPOSE 8084
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

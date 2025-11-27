@@ -34,9 +34,9 @@ spring:
 
       routes:
         - id: ticket-service
-          uri: http://localhost:8081
+          uri: http://${TICKET_SERVICE_HOST:localhost}:8081
           predicates:
-            - Path=/api/v1/tickets/**, /api/v1/users/**, /api/v1/auth/**, /api/v1/teams/**, /api/v1/projects/**, /api/v1/categories/**
+            - Path=/api/v1/tickets/**, /api/v1/users/**, /api/v1/auth/**, /api/v1/teams/**, /api/v1/projects/**, /api/v1/categories/**, /api/v1/sla/**, /api/v1/assets/**, /api/v1/changes/**, /api/v1/problems/**
           filters:
             - name: RequestRateLimiter
               args:
@@ -45,9 +45,9 @@ spring:
                 key-resolver: "#{@userKeyResolver}"
 
         - id: channel-service
-          uri: http://localhost:8082
+          uri: http://${CHANNEL_SERVICE_HOST:localhost}:8082
           predicates:
-            - Path=/api/v1/channels/**, /api/v1/widget/**
+            - Path=/api/v1/channels/**, /api/v1/widget/**, /api/v1/livechat/**
           filters:
             - name: RequestRateLimiter
               args:
@@ -56,9 +56,9 @@ spring:
                 key-resolver: "#{@userKeyResolver}"
 
         - id: knowledge-service
-          uri: http://localhost:8083
+          uri: http://${KNOWLEDGE_SERVICE_HOST:localhost}:8083
           predicates:
-            - Path=/api/v1/knowledge/**
+            - Path=/api/v1/knowledge/**, /api/v1/articles/**
           filters:
             - name: RequestRateLimiter
               args:
@@ -67,7 +67,7 @@ spring:
                 key-resolver: "#{@userKeyResolver}"
 
         - id: notification-service
-          uri: http://localhost:8084
+          uri: http://${NOTIFICATION_SERVICE_HOST:localhost}:8084
           predicates:
             - Path=/api/v1/notifications/**
           filters:
@@ -78,7 +78,7 @@ spring:
                 key-resolver: "#{@userKeyResolver}"
 
         - id: ai-service
-          uri: http://localhost:8085
+          uri: http://${AI_SERVICE_HOST:localhost}:8085
           predicates:
             - Path=/api/v1/ai/**
           filters:
@@ -88,10 +88,21 @@ spring:
                 redis-rate-limiter.burstCapacity: 50
                 key-resolver: "#{@userKeyResolver}"
 
-        - id: analytics-service
-          uri: http://localhost:8086
+        - id: marketplace-service
+          uri: http://${MARKETPLACE_SERVICE_HOST:localhost}:8086
           predicates:
-            - Path=/api/v1/analytics/**, /api/v1/reports/**
+            - Path=/api/v1/marketplace/**, /api/v1/modules/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+                key-resolver: "#{@userKeyResolver}"
+
+        - id: analytics-service
+          uri: http://${ANALYTICS_SERVICE_HOST:localhost}:8087
+          predicates:
+            - Path=/api/v1/analytics/**, /api/v1/reports/**, /api/v1/dashboard/**
           filters:
             - name: RequestRateLimiter
               args:
@@ -125,3 +136,90 @@ management:
       enabled: true
     health:
       show-details: when_authorized
+
+---
+# Docker profile
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  cloud:
+    gateway:
+      routes:
+        - id: ticket-service
+          uri: http://ticket-service:8081
+          predicates:
+            - Path=/api/v1/tickets/**, /api/v1/users/**, /api/v1/auth/**, /api/v1/teams/**, /api/v1/projects/**, /api/v1/categories/**, /api/v1/sla/**, /api/v1/assets/**, /api/v1/changes/**, /api/v1/problems/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+                key-resolver: "#{@userKeyResolver}"
+
+        - id: channel-service
+          uri: http://channel-service:8082
+          predicates:
+            - Path=/api/v1/channels/**, /api/v1/widget/**, /api/v1/livechat/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+                key-resolver: "#{@userKeyResolver}"
+
+        - id: knowledge-service
+          uri: http://knowledge-service:8083
+          predicates:
+            - Path=/api/v1/knowledge/**, /api/v1/articles/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+                key-resolver: "#{@userKeyResolver}"
+
+        - id: notification-service
+          uri: http://notification-service:8084
+          predicates:
+            - Path=/api/v1/notifications/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+                key-resolver: "#{@userKeyResolver}"
+
+        - id: ai-service
+          uri: http://ai-service:8085
+          predicates:
+            - Path=/api/v1/ai/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 50
+                key-resolver: "#{@userKeyResolver}"
+
+        - id: marketplace-service
+          uri: http://marketplace-service:8086
+          predicates:
+            - Path=/api/v1/marketplace/**, /api/v1/modules/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+                key-resolver: "#{@userKeyResolver}"
+
+        - id: analytics-service
+          uri: http://analytics-service:8087
+          predicates:
+            - Path=/api/v1/analytics/**, /api/v1/reports/**, /api/v1/dashboard/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+                key-resolver: "#{@userKeyResolver}"
