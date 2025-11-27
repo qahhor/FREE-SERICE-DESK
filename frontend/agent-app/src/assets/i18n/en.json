@@ -1,0 +1,81 @@
+{
+  "app": {
+    "name": "ServiceDesk Platform"
+  },
+  "common": {
+    "success": "Success",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "loading": "Loading...",
+    "no.results": "No results found",
+    "confirm.delete": "Are you sure you want to delete this item?"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "confirm.password": "Confirm Password",
+    "forgot.password": "Forgot Password?",
+    "remember.me": "Remember me",
+    "login.success": "Login successful",
+    "login.failed": "Invalid email or password",
+    "register.success": "Registration successful",
+    "logout.success": "You have been logged out"
+  },
+  "validation": {
+    "required": "This field is required",
+    "email.invalid": "Invalid email format",
+    "password.min": "Password must be at least 8 characters",
+    "password.mismatch": "Passwords do not match"
+  },
+  "user": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "first.name": "First Name",
+    "last.name": "Last Name",
+    "phone": "Phone",
+    "role": "Role",
+    "status": "Status"
+  },
+  "ticket": {
+    "title": "Tickets",
+    "create": "Create Ticket",
+    "subject": "Subject",
+    "description": "Description",
+    "status": "Status",
+    "priority": "Priority",
+    "type": "Type",
+    "channel": "Channel",
+    "assignee": "Assignee",
+    "requester": "Requester",
+    "team": "Team",
+    "category": "Category",
+    "tags": "Tags",
+    "due.date": "Due Date",
+    "created": "Created",
+    "updated": "Updated",
+    "comments": "Comments",
+    "attachments": "Attachments",
+    "history": "History",
+    "watchers": "Watchers"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "open.tickets": "Open Tickets",
+    "pending.tickets": "Pending Tickets",
+    "resolved.today": "Resolved Today",
+    "avg.response.time": "Avg Response Time",
+    "satisfaction": "Satisfaction"
+  },
+  "project": {
+    "title": "Projects"
+  }
+}
