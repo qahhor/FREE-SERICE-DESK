@@ -1,0 +1,50 @@
+// ServiceDesk Widget Styles
+// These styles are injected inline but kept here for reference
+
+#servicedesk-widget {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  // Animations
+  @keyframes sd-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes sd-pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes sd-typing-dot {
+    0%, 60%, 100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-4px);
+    }
+  }
+}
+
+// Utility classes that may be needed
+.sd-hidden {
+  display: none !important;
+}
+
+.sd-loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
