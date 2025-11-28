@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: servicedesk
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secrets.yaml
+  - postgres.yaml
+  - redis.yaml
+  - ticket-service.yaml
+  - channel-service.yaml
+  - knowledge-service.yaml
+  - notification-service.yaml
+  - ai-service.yaml
+  - api-gateway.yaml
+  - ingress.yaml
+
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/part-of: servicedesk-platform
+
+images:
+  - name: ghcr.io/servicedesk/ticket-service
+    newTag: latest
+  - name: ghcr.io/servicedesk/channel-service
+    newTag: latest
+  - name: ghcr.io/servicedesk/knowledge-service
+    newTag: latest
+  - name: ghcr.io/servicedesk/notification-service
+    newTag: latest
+  - name: ghcr.io/servicedesk/ai-service
+    newTag: latest
+  - name: ghcr.io/servicedesk/api-gateway
+    newTag: latest

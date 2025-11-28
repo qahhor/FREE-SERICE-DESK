@@ -56,6 +56,8 @@ spring:
           writetimeout: 5000
 
 servicedesk:
+  services:
+    ticket-service-url: ${TICKET_SERVICE_URL:http://localhost:8081}
   notification:
     email:
       from: ${MAIL_FROM:noreply@servicedesk.local}

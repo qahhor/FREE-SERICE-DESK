@@ -18,6 +18,9 @@ public class Notification extends BaseEntity {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
+    @Column(name = "user_email")
+    private String userEmail;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private NotificationType type;

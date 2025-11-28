@@ -14,6 +14,7 @@ import java.util.Map;
 @Builder
 public class SendNotificationRequest {
     private String userId;
+    private String userEmail;
     private Notification.NotificationType type;
     private String title;
     private String message;

@@ -37,6 +37,7 @@ public class NotificationService {
     public NotificationDto createNotification(SendNotificationRequest request) {
         Notification notification = Notification.builder()
                 .userId(request.getUserId())
+                .userEmail(request.getUserEmail())
                 .type(request.getType())
                 .title(request.getTitle())
                 .message(request.getMessage())

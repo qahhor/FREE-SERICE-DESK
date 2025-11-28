@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">Notification</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .email-wrapper {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #2563eb;
+            color: #ffffff;
+            padding: 24px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 32px 24px;
+        }
+        .notification-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+        .notification-message {
+            font-size: 16px;
+            color: #4b5563;
+            margin-bottom: 24px;
+            white-space: pre-wrap;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        .badge-urgent, .badge-high {
+            background-color: #fef2f2;
+            color: #dc2626;
+        }
+        .badge-normal {
+            background-color: #eff6ff;
+            color: #2563eb;
+        }
+        .badge-low {
+            background-color: #f0fdf4;
+            color: #16a34a;
+        }
+        .action-button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: #ffffff !important;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 16px;
+        }
+        .action-button:hover {
+            background-color: #1d4ed8;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .type-label {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="email-wrapper">
+            <div class="header">
+                <h1>ServiceDesk</h1>
+            </div>
+            <div class="content">
+                <div class="type-label" th:text="${type}">TICKET_ASSIGNED</div>
+
+                <span class="badge"
+                      th:classappend="${priority == 'URGENT' or priority == 'HIGH'} ? 'badge-urgent' : (${priority == 'LOW'} ? 'badge-low' : 'badge-normal')"
+                      th:text="${priority}">NORMAL</span>
+
+                <div class="notification-title" th:text="${title}">Notification Title</div>
+
+                <div class="notification-message" th:text="${message}">
+                    Notification message content goes here.
+                </div>
+
+                <div th:if="${actionUrl}">
+                    <a th:href="${actionUrl}" class="action-button">View Details</a>
+                </div>
+            </div>
+            <div class="footer">
+                <p>This is an automated notification from ServiceDesk Platform.</p>
+                <p>You can manage your notification preferences in your <a href="#">account settings</a>.</p>
+                <p>&copy; 2024 ServiceDesk Platform. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
