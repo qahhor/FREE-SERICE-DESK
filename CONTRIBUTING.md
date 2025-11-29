@@ -50,7 +50,7 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 - Maven 3.8+
 - Docker & Docker Compose
 - Node.js 18+ (for frontend)
-- IDE with Lombok support
+- IDE with Lombok support (IntelliJ IDEA or Eclipse)
 
 ### Setup Steps
 
@@ -59,16 +59,37 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 git clone https://github.com/YOUR_USERNAME/servicedesk-platform.git
 cd servicedesk-platform
 
-# Start infrastructure
-docker-compose -f docker-compose.dev.yml up -d
+# Start infrastructure (PostgreSQL, Redis, Elasticsearch, MinIO)
+docker-compose -f docker-compose.monolith.yml up -d postgres redis elasticsearch minio
 
-# Build backend
+# Build the monolithic application
 cd backend
-mvn clean install
+mvn clean install -pl monolith-app -am
 
-# Run the application
-cd ticket-service
+# Run the monolith locally
+cd monolith-app
 mvn spring-boot:run
+
+# Or run the JAR directly
+java -jar target/servicedesk-monolith.jar
+
+# Access the application
+# API: http://localhost:8080
+# Swagger UI: http://localhost:8080/swagger-ui.html
+# Actuator Health: http://localhost:8080/actuator/health
+```
+
+### Running with Docker (Full Stack)
+
+```bash
+# Build and run everything
+docker-compose -f docker-compose.monolith.yml up -d
+
+# View logs
+docker-compose -f docker-compose.monolith.yml logs -f servicedesk-monolith
+
+# Stop all services
+docker-compose -f docker-compose.monolith.yml down
 ```
 
 ## Coding Standards
@@ -106,25 +127,175 @@ Types:
 - Use meaningful test names
 - Test edge cases and error conditions
 
+```bash
+# Run all tests
+cd backend
+mvn test -pl monolith-app
+
+# Run with coverage report
+mvn test jacoco:report -pl monolith-app
+
+# Run integration tests (uses Testcontainers)
+mvn verify -pl monolith-app
+
+# View coverage report
+open monolith-app/target/site/jacoco/index.html
+```
+
+### Working with the Modular Monolith
+
+#### Adding a New Feature to an Existing Module
+
+1. **Identify the module** - Determine which module owns the feature
+2. **Create/update entities** - Add domain models in `{module}/entity/`
+3. **Add repository** - Create JPA repository in `{module}/repository/`
+4. **Implement service** - Add business logic in `{module}/service/`
+5. **Create controller** - Add REST endpoints in `{module}/controller/`
+6. **Write tests** - Add unit and integration tests
+7. **Update documentation** - Add Swagger annotations
+
+#### Creating a New Module
+
+If you need to add a completely new module:
+
+1. Create package structure: `com.servicedesk.monolith.{module-name}/`
+2. Follow the standard module layout (entity, repository, service, controller)
+3. Create module configuration if needed
+4. Register module in main application
+5. Add database migrations in `resources/db/migration/`
+6. Update documentation in ARCHITECTURE.md
+
+#### Inter-Module Communication
+
+**Synchronous (Direct calls):**
+```java
+@Service
+@RequiredArgsConstructor
+public class TicketService {
+    private final UserService userService;  // Direct dependency
+
+    public void assignTicket(UUID ticketId, UUID userId) {
+        User user = userService.findById(userId);  // Direct call
+        // ... business logic
+    }
+}
+```
+
+**Asynchronous (Events):**
+```java
+// Publishing an event
+@Service
+@RequiredArgsConstructor
+public class TicketService {
+    private final ApplicationEventPublisher eventPublisher;
+
+    public void createTicket(Ticket ticket) {
+        // ... save ticket
+        eventPublisher.publishEvent(NotificationEvent.builder()
+            .userId(ticket.getAssigneeId())
+            .type("EMAIL")
+            .title("New Ticket Assigned")
+            .build());
+    }
+}
+
+// Listening to an event
+@Component
+public class NotificationEventListener {
+    @EventListener
+    @Async
+    public void handleNotification(NotificationEvent event) {
+        // Process notification
+    }
+}
+```
+
+#### Database Migrations
+
+When adding database changes:
+
+1. Create new migration file: `V{next-number}__{description}.sql`
+2. Follow naming convention: `V42__add_custom_fields_to_tickets.sql`
+3. Test migration on clean database
+4. Test rollback if possible
+5. Document any manual steps needed
+
+Example:
+```sql
+-- V42__add_custom_fields_to_tickets.sql
+ALTER TABLE tickets ADD COLUMN custom_fields JSONB;
+CREATE INDEX idx_tickets_custom_fields ON tickets USING gin(custom_fields);
+```
+
 ## Project Structure
+
+The project follows a **modular monolithic architecture** with clear module boundaries:
 
 ```
 backend/
-├── common-lib/           # Shared code
-│   ├── entity/          # Base entities
-│   ├── dto/             # Common DTOs
-│   ├── exception/       # Exception classes
-│   ├── security/        # Security utilities
-│   └── config/          # Common configs
+├── common-lib/                    # Shared utilities, DTOs, security
+│   ├── entity/                   # Base entities
+│   ├── dto/                      # Common DTOs
+│   ├── exception/                # Exception classes
+│   ├── security/                 # JWT, authentication
+│   └── config/                   # Common configurations
 │
-└── ticket-service/      # Main service
-    ├── entity/          # JPA entities
-    ├── dto/             # Request/Response DTOs
-    ├── repository/      # Data access
-    ├── service/         # Business logic
-    ├── controller/      # REST controllers
-    └── config/          # Service configs
+└── monolith-app/                  # 🎯 Unified monolithic application
+    ├── src/main/java/com/servicedesk/monolith/
+    │   ├── ServiceDeskMonolithApplication.java  # Main entry point
+    │   │
+    │   ├── ticket/               # Ticket Management Module
+    │   │   ├── entity/          # Ticket, User, Team, SLA entities
+    │   │   ├── dto/             # Request/Response DTOs
+    │   │   ├── repository/      # JPA repositories
+    │   │   ├── service/         # Business logic
+    │   │   ├── controller/      # REST endpoints
+    │   │   └── config/          # Module-specific configs
+    │   │
+    │   ├── channel/              # Omnichannel Module
+    │   │   ├── entity/          # Channel, Message entities
+    │   │   ├── service/         # Email, Telegram, WhatsApp services
+    │   │   └── controller/      # Channel endpoints
+    │   │
+    │   ├── notification/         # Notification Module
+    │   │   ├── entity/          # Notification entities
+    │   │   ├── service/         # Notification delivery
+    │   │   └── event/           # Event listeners
+    │   │
+    │   ├── knowledge/            # Knowledge Base Module
+    │   │   ├── entity/          # Article, Category entities
+    │   │   ├── service/         # Full-text search
+    │   │   └── controller/      # Knowledge API
+    │   │
+    │   ├── ai/                   # AI Module
+    │   │   ├── service/         # OpenAI, Claude integration
+    │   │   └── controller/      # AI endpoints
+    │   │
+    │   ├── analytics/            # Analytics Module
+    │   │   ├── service/         # Dashboard, reports
+    │   │   └── controller/      # Analytics API
+    │   │
+    │   ├── marketplace/          # Marketplace Module
+    │   │   ├── entity/          # Module, Plugin entities
+    │   │   └── service/         # Plugin system
+    │   │
+    │   └── common/               # Common configurations
+    │       ├── config/          # Database, security, cache
+    │       └── event/           # Spring events (replaces RabbitMQ)
+    │
+    └── src/main/resources/
+        ├── application.yml
+        ├── application-docker.yml
+        └── db/migration/        # Flyway migrations (V1-V41)
 ```
+
+### Module Boundaries
+
+Each module has:
+- **Clear responsibility** - Single purpose (SRP)
+- **Independent domain** - Own entities and business logic
+- **Defined interfaces** - Service layer for module interactions
+- **Event-driven communication** - Spring Events for async operations
 
 ## API Guidelines
 
