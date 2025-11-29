@@ -214,6 +214,7 @@ mvn spring-boot:run -pl monolith-app
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Deployment guide (Docker, K8s, bare metal) |
 | **[PRODUCTION-DEPLOYMENT.md](PRODUCTION-DEPLOYMENT.md)** | **🚀 Complete production deployment guide** |
 | [MIGRATION.md](MIGRATION.md) | Migration guide from microservices |
+| [FRONTEND.md](FRONTEND.md) | Frontend architecture & integration guide |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines |
 | [README.MONOLITH.md](README.MONOLITH.md) | Extended monolith documentation |
 
@@ -257,17 +258,20 @@ servicedesk-platform/
 │   │   └── Dockerfile
 │   └── modules/                 # Pluggable modules
 │
-├── frontend/
-│   ├── agent-app/               # Agent interface (Angular)
-│   ├── customer-portal/         # Self-service portal
-│   └── widget/                  # Embeddable chat widget
-│
 ├── infrastructure/
 │   └── prometheus/              # Monitoring configurations
 │
+├── scripts/                     # Build and deployment scripts
+│   ├── build-production.sh      # Production build
+│   └── deploy-production.sh     # Automated deployment
+│
 ├── docker-compose.monolith.yml  # 🎯 Production deployment
-└── docker-compose.yml           # Legacy (microservices reference)
+├── docker-compose.yml           # Legacy (microservices reference)
+└── FRONTEND.md                  # Frontend architecture guide
 ```
+
+> **Note:** Frontend has been removed from this repository. The backend provides a complete REST API.
+> See [FRONTEND.md](FRONTEND.md) for frontend development options and integration guide.
 
 ### Building from Source
 

@@ -49,7 +49,6 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 - Java 17+
 - Maven 3.8+
 - Docker & Docker Compose
-- Node.js 18+ (for frontend)
 - IDE with Lombok support (IntelliJ IDEA or Eclipse)
 
 ### Setup Steps
