@@ -188,6 +188,36 @@ mvn spring-boot:run -pl monolith-app
 | **MapStruct** | DTO Mapping | 1.5.5 |
 | **Lombok** | Boilerplate Reduction | Latest |
 
+### Frontend (Angular Application)
+
+| Technology | Purpose | Version |
+|------------|---------|---------|
+| **Angular** | Frontend Framework | 17.3.x |
+| **TypeScript** | Programming Language | 5.x |
+| **Angular Material** | UI Components | 17.3.x |
+| **RxJS** | Reactive Programming | 7.8.x |
+| **Chart.js** | Data Visualization | 4.4.x |
+| **Socket.io Client** | WebSocket Communication | 4.7.x |
+
+**Frontend Features:**
+- 🔐 JWT Authentication with auto-refresh
+- 🎫 Complete Ticket Management UI
+- 💬 Multi-channel support interface
+- 📚 Knowledge Base browser
+- 🤖 AI Assistant chat interface
+- 📊 Analytics dashboards
+- 🛍️ Marketplace for plugins
+- 📱 Fully responsive design
+
+**Quick Start:**
+```bash
+cd frontend
+npm install
+npm start  # Starts on http://localhost:4200
+```
+
+See [frontend/README.md](frontend/README.md) for detailed documentation.
+
 ### Infrastructure
 
 | Component | Purpose | Version |
