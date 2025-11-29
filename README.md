@@ -112,22 +112,38 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation.
 
 ### Production Deployment
 
+**🚀 Automated (Recommended):**
+
 ```bash
 # 1. Clone the repository
 git clone https://github.com/qahhor/FREE-SERICE-DESK.git
 cd FREE-SERICE-DESK
 
-# 2. Configure environment variables
+# 2. Build production artifact
+./scripts/build-production.sh
+
+# 3. Deploy with automated script
+./scripts/deploy-production.sh
+
+# See: PRODUCTION-DEPLOYMENT.md for complete guide
+```
+
+**⚡ Quick Start (Docker Compose):**
+
+```bash
+# 1. Clone and configure
+git clone https://github.com/qahhor/FREE-SERICE-DESK.git
+cd FREE-SERICE-DESK
 cp .env.example .env
 nano .env  # Set JWT_SECRET (required, min 32 characters)
 
-# 3. Start the monolithic application
+# 2. Start the monolithic application
 docker-compose -f docker-compose.monolith.yml up -d
 
-# 4. Wait for startup (~30 seconds)
+# 3. Wait for startup (~30 seconds)
 docker-compose -f docker-compose.monolith.yml logs -f servicedesk-monolith
 
-# 5. Access the application
+# 4. Access the application
 # ✅ API: http://localhost:8080
 # ✅ Swagger UI: http://localhost:8080/swagger-ui.html
 # ✅ Actuator: http://localhost:8080/actuator/health
@@ -196,9 +212,24 @@ mvn spring-boot:run -pl monolith-app
 |----------|-------------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Detailed architecture documentation |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Deployment guide (Docker, K8s, bare metal) |
+| **[PRODUCTION-DEPLOYMENT.md](PRODUCTION-DEPLOYMENT.md)** | **🚀 Complete production deployment guide** |
 | [MIGRATION.md](MIGRATION.md) | Migration guide from microservices |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines |
 | [README.MONOLITH.md](README.MONOLITH.md) | Extended monolith documentation |
+
+### Production Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/build-production.sh` | Build production-ready JAR with full packaging |
+| `scripts/deploy-production.sh` | Automated deployment (Docker/JAR/K8s) |
+
+### Configuration Templates
+
+| File | Purpose |
+|------|---------|
+| `.env.production.example` | Production environment variables template (380+ lines) |
+| `.env.example` | Development environment variables |
 
 ---
 
@@ -297,10 +328,47 @@ mvn flyway:undo -pl monolith-app
 
 ## 🚢 Deployment
 
-### Docker Compose (Recommended)
+### 🚀 Production Deployment (Automated)
+
+**NEW!** Use automated production scripts for streamlined deployment:
 
 ```bash
-# Production deployment
+# 1. Build production artifact
+./scripts/build-production.sh
+
+# Creates: build/artifacts/servicedesk-monolith-1.0.0.jar
+# Plus: BUILD_INFO.txt, QUICK_START.md, configs, docs
+
+# 2. Deploy with Docker Compose (recommended)
+./scripts/deploy-production.sh
+
+# Or deploy as standalone JAR with systemd
+sudo ./scripts/deploy-production.sh -m jar
+
+# Or deploy to Kubernetes
+./scripts/deploy-production.sh -m kubernetes
+```
+
+**Production Build Output:**
+```
+build/
+├── artifacts/servicedesk-monolith-1.0.0.jar  # Production JAR (~50-80MB)
+├── config/                                    # Application configs
+├── docker/                                    # Docker deployment files
+├── scripts/                                   # Deployment scripts
+├── docs/                                      # Complete documentation
+├── BUILD_INFO.txt                             # Build metadata & checksums
+└── QUICK_START.md                             # Quick deployment guide
+```
+
+**See:** [PRODUCTION-DEPLOYMENT.md](PRODUCTION-DEPLOYMENT.md) for complete production setup guide.
+
+---
+
+### Docker Compose (Quick Start)
+
+```bash
+# Development/Testing
 docker-compose -f docker-compose.monolith.yml up -d
 
 # View logs
@@ -324,12 +392,12 @@ java -jar backend/monolith-app/target/servicedesk-monolith.jar
 
 # With custom profile
 java -jar backend/monolith-app/target/servicedesk-monolith.jar \
-  --spring.profiles.active=prod
+  --spring.profiles.active=production
 ```
 
 ### Kubernetes
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for Kubernetes manifests.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for Kubernetes manifests and [PRODUCTION-DEPLOYMENT.md](PRODUCTION-DEPLOYMENT.md) for production setup.
 
 ---
 
@@ -399,11 +467,40 @@ curl -X POST http://localhost:8080/api/v1/tickets \
 
 ## ⚙️ Configuration
 
+### 🔐 Production Configuration
+
+For production deployments, use the comprehensive template:
+
+```bash
+# Copy production template
+cp .env.production.example .env
+
+# Generate secure secrets
+JWT_SECRET=$(openssl rand -base64 48)
+DB_PASSWORD=$(openssl rand -base64 32)
+
+# Edit with your production values
+nano .env
+```
+
+**`.env.production.example` includes:**
+- 🔐 Security settings (JWT, passwords)
+- 🗄️ Database configuration (PostgreSQL with connection pooling)
+- 💾 Redis caching
+- 🔍 Elasticsearch full-text search
+- 📧 Email/SMTP
+- 💬 Messengers (Telegram, WhatsApp)
+- 🤖 AI integration (OpenAI, Anthropic)
+- 📊 Monitoring (Prometheus, Grafana)
+- 📝 Logging & backups
+- ...and 380+ lines of comprehensive config
+
 ### Required Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `JWT_SECRET` | JWT signing secret | `your-very-secure-32-char-secret` |
+| Variable | Description | Example | Generation |
+|----------|-------------|---------|------------|
+| `JWT_SECRET` | JWT signing secret (min 48 chars) | - | `openssl rand -base64 48` |
+| `DB_PASSWORD` | Database password | - | `openssl rand -base64 32` |
 
 ### Optional Environment Variables
 
@@ -414,7 +511,6 @@ curl -X POST http://localhost:8080/api/v1/tickets \
 | `DB_PORT` | 5432 | PostgreSQL port |
 | `DB_NAME` | servicedesk | Database name |
 | `DB_USERNAME` | servicedesk | Database username |
-| `DB_PASSWORD` | servicedesk | Database password |
 | `REDIS_HOST` | localhost | Redis host |
 | `REDIS_PORT` | 6379 | Redis port |
 | `ELASTICSEARCH_URIS` | http://localhost:9200 | Elasticsearch URL |
@@ -422,12 +518,14 @@ curl -X POST http://localhost:8080/api/v1/tickets \
 | `MAIL_PORT` | 587 | SMTP port |
 | `MAIL_USERNAME` | - | SMTP username |
 | `MAIL_PASSWORD` | - | SMTP password |
-| `OPENAI_API_KEY` | - | OpenAI API key |
-| `ANTHROPIC_API_KEY` | - | Anthropic API key |
+| `OPENAI_API_KEY` | - | OpenAI API key (for GPT-4) |
+| `ANTHROPIC_API_KEY` | - | Anthropic API key (for Claude) |
 | `TELEGRAM_BOT_TOKEN` | - | Telegram bot token |
-| `WHATSAPP_API_KEY` | - | WhatsApp API key |
+| `WHATSAPP_ACCESS_TOKEN` | - | WhatsApp Business API token |
 
-See `.env.example` for complete list.
+**Configuration files:**
+- `.env.example` - Development configuration (quick start)
+- `.env.production.example` - Production configuration (complete, 380+ lines)
 
 ---
 
