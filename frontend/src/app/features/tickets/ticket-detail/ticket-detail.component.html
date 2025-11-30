@@ -1,0 +1,127 @@
+<app-layout>
+  <div class="ticket-detail-container">
+    <app-loading-spinner *ngIf="loading"></app-loading-spinner>
+
+    <div *ngIf="!loading && ticket" class="ticket-content">
+      <!-- Header -->
+      <div class="header">
+        <button mat-icon-button routerLink="/tickets">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>Ticket #{{ ticket.id }}</h1>
+        <div class="header-actions">
+          <button mat-button (click)="closeTicket()" *ngIf="ticket.status !== 'CLOSED'">
+            <mat-icon>close</mat-icon>
+            Close Ticket
+          </button>
+        </div>
+      </div>
+
+      <div class="ticket-grid">
+        <!-- Main Content -->
+        <div class="main-content">
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>{{ ticket.title }}</mat-card-title>
+              <mat-card-subtitle>
+                Created {{ ticket.createdAt | timeAgo }} by {{ ticket.customerName || ticket.customerEmail }}
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <div class="description">
+                {{ ticket.description }}
+              </div>
+
+              <mat-divider class="my-3"></mat-divider>
+
+              <!-- Comments -->
+              <div class="comments-section">
+                <h3>Comments ({{ comments.length }})</h3>
+
+                <div class="comments-list">
+                  <div *ngFor="let comment of comments" class="comment">
+                    <div class="comment-header">
+                      <strong>{{ comment.authorName }}</strong>
+                      <span class="comment-time">{{ comment.createdAt | timeAgo }}</span>
+                    </div>
+                    <div class="comment-content">{{ comment.content }}</div>
+                  </div>
+                </div>
+
+                <!-- Add Comment -->
+                <div class="add-comment">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Add a comment</mat-label>
+                    <textarea matInput
+                              [(ngModel)]="newComment"
+                              rows="3"
+                              placeholder="Write your comment..."></textarea>
+                  </mat-form-field>
+                  <button mat-raised-button
+                          color="primary"
+                          (click)="addComment()"
+                          [disabled]="!newComment.trim() || addingComment">
+                    <mat-icon>send</mat-icon>
+                    Send
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <mat-card>
+            <mat-card-content>
+              <div class="info-group">
+                <label>Status</label>
+                <mat-chip [class]="getStatusClass(ticket.status)">
+                  {{ ticket.status }}
+                </mat-chip>
+              </div>
+
+              <div class="info-group">
+                <label>Priority</label>
+                <mat-chip [class]="getPriorityClass(ticket.priority)">
+                  {{ ticket.priority }}
+                </mat-chip>
+              </div>
+
+              <mat-divider class="my-2"></mat-divider>
+
+              <div class="info-group">
+                <label>Customer</label>
+                <div>{{ ticket.customerName || 'Unknown' }}</div>
+                <div class="info-secondary">{{ ticket.customerEmail }}</div>
+              </div>
+
+              <div class="info-group">
+                <label>Assignee</label>
+                <div>{{ ticket.assignedAgentName || 'Unassigned' }}</div>
+              </div>
+
+              <mat-divider class="my-2"></mat-divider>
+
+              <div class="info-group">
+                <label>Created</label>
+                <div>{{ ticket.createdAt | date:'medium' }}</div>
+              </div>
+
+              <div class="info-group" *ngIf="ticket.updatedAt">
+                <label>Updated</label>
+                <div>{{ ticket.updatedAt | date:'medium' }}</div>
+              </div>
+
+              <div class="info-group" *ngIf="ticket.closedAt">
+                <label>Closed</label>
+                <div>{{ ticket.closedAt | date:'medium' }}</div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-layout>

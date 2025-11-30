@@ -1,0 +1,79 @@
+<app-layout>
+  <div class="dashboard-container">
+    <h1>Dashboard</h1>
+
+    <app-loading-spinner *ngIf="loading" [message]="'Loading dashboard...'"></app-loading-spinner>
+
+    <div *ngIf="!loading" class="dashboard-content">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <mat-card *ngFor="let stat of statCards" class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon" [style.background-color]="stat.color">
+              <mat-icon>{{ stat.icon }}</mat-icon>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">{{ stat.value }}</div>
+              <div class="stat-title">{{ stat.title }}</div>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+
+      <!-- Quick Actions -->
+      <mat-card class="quick-actions-card">
+        <mat-card-header>
+          <mat-card-title>Quick Actions</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="actions-grid">
+            <button mat-raised-button color="primary" routerLink="/tickets/new">
+              <mat-icon>add</mat-icon>
+              New Ticket
+            </button>
+            <button mat-raised-button routerLink="/tickets">
+              <mat-icon>inbox</mat-icon>
+              View Tickets
+            </button>
+            <button mat-raised-button routerLink="/knowledge">
+              <mat-icon>library_books</mat-icon>
+              Knowledge Base
+            </button>
+            <button mat-raised-button routerLink="/analytics">
+              <mat-icon>analytics</mat-icon>
+              Reports
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Recent Tickets -->
+      <mat-card class="recent-tickets-card">
+        <mat-card-header>
+          <mat-card-title>Recent Tickets</mat-card-title>
+          <button mat-button color="primary" routerLink="/tickets">View All</button>
+        </mat-card-header>
+        <mat-card-content>
+          <div *ngIf="recentTickets.length === 0" class="no-tickets">
+            <mat-icon>inbox</mat-icon>
+            <p>No recent tickets</p>
+          </div>
+
+          <div *ngIf="recentTickets.length > 0" class="tickets-list">
+            <div *ngFor="let ticket of recentTickets" class="ticket-item">
+              <div class="ticket-info">
+                <div class="ticket-title">{{ ticket.title || 'Untitled' }}</div>
+                <div class="ticket-meta">
+                  #{{ ticket.id }} • {{ ticket.status }} • {{ ticket.createdAt | date:'short' }}
+                </div>
+              </div>
+              <button mat-icon-button [routerLink]="['/tickets', ticket.id]">
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</app-layout>
