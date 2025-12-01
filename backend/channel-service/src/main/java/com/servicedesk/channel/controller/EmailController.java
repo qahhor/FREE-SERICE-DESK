@@ -142,11 +142,8 @@ public class EmailController {
 
         EmailConnectionTestResult result = emailService.testConnection(config);
         
-        if (result.isSuccess()) {
-            return ResponseEntity.ok(ApiResponse.success(result));
-        } else {
-            return ResponseEntity.ok(ApiResponse.success(result));
-        }
+        // Always return success for the API call, with the test result containing detailed status
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     private EmailConfigurationDto toDto(EmailConfiguration config) {
