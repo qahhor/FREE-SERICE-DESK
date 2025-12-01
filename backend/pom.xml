@@ -56,7 +56,7 @@
 
         <!-- Database -->
         <postgresql.version>42.7.1</postgresql.version>
-        <flyway.version>9.22.3</flyway.version>
+        <flyway.version>10.2.0</flyway.version>
 
         <!-- Security -->
         <jjwt.version>0.12.3</jjwt.version>

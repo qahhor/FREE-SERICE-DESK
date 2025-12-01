@@ -1,6 +1,7 @@
 package com.servicedesk.monolith.channel.controller;
 
 import com.servicedesk.monolith.channel.dto.EmailConfigurationDto;
+import com.servicedesk.monolith.channel.dto.EmailConnectionTestResult;
 import com.servicedesk.monolith.channel.dto.SendEmailRequest;
 import com.servicedesk.monolith.channel.entity.EmailConfiguration;
 import com.servicedesk.monolith.channel.entity.EmailMessage;
@@ -135,12 +136,14 @@ public class EmailController {
 
     @PostMapping("/configurations/{channelId}/test")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<String>> testConnection(@PathVariable String channelId) {
+    public ResponseEntity<ApiResponse<EmailConnectionTestResult>> testConnection(@PathVariable String channelId) {
         EmailConfiguration config = configRepository.findByChannelId(channelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Email configuration not found"));
 
-        // TODO: Implement connection test
-        return ResponseEntity.ok(ApiResponse.success("Connection test successful"));
+        EmailConnectionTestResult result = emailService.testConnection(config);
+        
+        // Always return success for the API call, with the test result containing detailed status
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     private EmailConfigurationDto toDto(EmailConfiguration config) {

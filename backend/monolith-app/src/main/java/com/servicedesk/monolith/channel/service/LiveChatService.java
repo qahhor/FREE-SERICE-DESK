@@ -1,5 +1,6 @@
 package com.servicedesk.monolith.channel.service;
-\nimport org.springframework.context.ApplicationEventPublisher;
+
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

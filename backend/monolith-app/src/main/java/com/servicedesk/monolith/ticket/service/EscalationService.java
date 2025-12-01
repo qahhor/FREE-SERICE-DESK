@@ -1,5 +1,6 @@
 package com.servicedesk.monolith.ticket.service;
-\nimport org.springframework.context.ApplicationEventPublisher;
+
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.servicedesk.monolith.ticket.dto.EscalationRuleDto;
 import com.servicedesk.monolith.ticket.entity.*;

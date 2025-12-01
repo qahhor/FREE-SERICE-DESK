@@ -2,9 +2,13 @@ package com.servicedesk.monolith.ticket.service.onboarding;
 
 import com.servicedesk.monolith.ticket.dto.onboarding.OnboardingProgressDto;
 import com.servicedesk.monolith.ticket.dto.onboarding.OnboardingStepDto;
+import com.servicedesk.monolith.ticket.entity.onboarding.Achievement;
 import com.servicedesk.monolith.ticket.entity.onboarding.OnboardingStep;
+import com.servicedesk.monolith.ticket.entity.onboarding.UserAchievement;
 import com.servicedesk.monolith.ticket.entity.onboarding.UserOnboarding;
+import com.servicedesk.monolith.ticket.repository.onboarding.AchievementRepository;
 import com.servicedesk.monolith.ticket.repository.onboarding.OnboardingStepRepository;
+import com.servicedesk.monolith.ticket.repository.onboarding.UserAchievementRepository;
 import com.servicedesk.monolith.ticket.repository.onboarding.UserOnboardingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +26,8 @@ public class OnboardingService {
 
     private final UserOnboardingRepository onboardingRepository;
     private final OnboardingStepRepository stepRepository;
+    private final AchievementRepository achievementRepository;
+    private final UserAchievementRepository userAchievementRepository;
 
     /**
      * Get or create onboarding progress for user
@@ -51,11 +57,22 @@ public class OnboardingService {
         UserOnboarding onboarding = onboardingRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Onboarding not found for user: " + userId));
 
+        boolean wasFirstStep = onboarding.getCompletedSteps().isEmpty();
+        
         onboarding.markStepCompleted(stepId);
         onboarding.setCurrentStep(onboarding.getCurrentStep() + 1);
         onboarding = onboardingRepository.save(onboarding);
 
         log.info("User {} completed onboarding step: {}", userId, stepId);
+
+        // Check and grant achievements
+        if (wasFirstStep) {
+            grantAchievementIfNotExists(userId, "first_steps");
+        }
+        
+        if (onboarding.getStatus() == UserOnboarding.OnboardingStatus.COMPLETED) {
+            grantAchievementIfNotExists(userId, "quick_learner");
+        }
 
         return buildProgressDto(onboarding);
     }
@@ -81,6 +98,8 @@ public class OnboardingService {
 
         if (allToursCompleted) {
             onboarding.setTourCompleted(true);
+            // Grant explorer achievement when all tours are viewed
+            grantAchievementIfNotExists(userId, "explorer");
         }
 
         onboarding = onboardingRepository.save(onboarding);
@@ -294,6 +313,9 @@ public class OnboardingService {
                         e -> e.getValue().isCompleted()
                 ));
 
+        // Get user's achievements
+        List<OnboardingProgressDto.AchievementDto> achievements = getUserAchievementDtos(onboarding.getUserId());
+
         return OnboardingProgressDto.builder()
                 .userId(onboarding.getUserId())
                 .userRole(onboarding.getUserRole())
@@ -310,7 +332,7 @@ public class OnboardingService {
                 .startedAt(onboarding.getStartedAt())
                 .completedAt(onboarding.getCompletedAt())
                 .nextStep(nextStep)
-                .achievements(List.of()) // TODO: Implement achievements
+                .achievements(achievements)
                 .build();
     }
 
@@ -328,6 +350,45 @@ public class OnboardingService {
         }
 
         return true;
+    }
+
+    /**
+     * Get user's achievements as DTOs
+     */
+    private List<OnboardingProgressDto.AchievementDto> getUserAchievementDtos(UUID userId) {
+        List<UserAchievement> userAchievements = userAchievementRepository.findByUserIdOrderByEarnedAtDesc(userId);
+        
+        return userAchievements.stream()
+                .map(ua -> OnboardingProgressDto.AchievementDto.builder()
+                        .id(ua.getAchievement().getAchievementId())
+                        .title(ua.getAchievement().getName())
+                        .description(ua.getAchievement().getDescription())
+                        .icon(ua.getAchievement().getIcon())
+                        .earnedAt(ua.getEarnedAt())
+                        .build())
+                .toList();
+    }
+
+    /**
+     * Grant an achievement to a user if they don't already have it
+     */
+    private void grantAchievementIfNotExists(UUID userId, String achievementId) {
+        if (userAchievementRepository.existsByUserIdAndAchievement_AchievementId(userId, achievementId)) {
+            log.debug("User {} already has achievement {}", userId, achievementId);
+            return;
+        }
+
+        achievementRepository.findByAchievementId(achievementId).ifPresent(achievement -> {
+            if (achievement.isActive()) {
+                UserAchievement userAchievement = UserAchievement.builder()
+                        .userId(userId)
+                        .achievement(achievement)
+                        .earnedAt(Instant.now())
+                        .build();
+                userAchievementRepository.save(userAchievement);
+                log.info("Granted achievement {} to user {}", achievementId, userId);
+            }
+        });
     }
 
     @lombok.Data
