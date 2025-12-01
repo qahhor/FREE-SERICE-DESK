@@ -350,4 +350,128 @@ public class EmailService {
     public List<EmailMessage> getEmailsByTicket(String ticketId) {
         return messageRepository.findByTicketIdOrderByCreatedAtDesc(ticketId);
     }
+
+    /**
+     * Test IMAP and SMTP connections for the given email configuration
+     * @param config the email configuration to test
+     * @return test result with detailed information about both connections
+     */
+    public com.servicedesk.monolith.channel.dto.EmailConnectionTestResult testConnection(EmailConfiguration config) {
+        boolean imapSuccess = false;
+        boolean smtpSuccess = false;
+        String imapMessage = "Not tested";
+        String smtpMessage = "Not tested";
+        long imapResponseTimeMs = 0;
+        long smtpResponseTimeMs = 0;
+
+        // Test IMAP connection
+        if (config.getImapHost() != null && !config.getImapHost().isEmpty()) {
+            long startTime = System.currentTimeMillis();
+            try {
+                testImapConnection(config);
+                imapSuccess = true;
+                imapResponseTimeMs = System.currentTimeMillis() - startTime;
+                imapMessage = "IMAP connection successful";
+                log.info("IMAP connection test successful for {}", config.getEmailAddress());
+            } catch (Exception e) {
+                imapResponseTimeMs = System.currentTimeMillis() - startTime;
+                imapMessage = "IMAP connection failed: " + e.getMessage();
+                log.warn("IMAP connection test failed for {}: {}", config.getEmailAddress(), e.getMessage());
+            }
+        } else {
+            imapMessage = "IMAP not configured";
+        }
+
+        // Test SMTP connection
+        if (config.getSmtpHost() != null && !config.getSmtpHost().isEmpty()) {
+            long startTime = System.currentTimeMillis();
+            try {
+                testSmtpConnection(config);
+                smtpSuccess = true;
+                smtpResponseTimeMs = System.currentTimeMillis() - startTime;
+                smtpMessage = "SMTP connection successful";
+                log.info("SMTP connection test successful for {}", config.getEmailAddress());
+            } catch (Exception e) {
+                smtpResponseTimeMs = System.currentTimeMillis() - startTime;
+                smtpMessage = "SMTP connection failed: " + e.getMessage();
+                log.warn("SMTP connection test failed for {}: {}", config.getEmailAddress(), e.getMessage());
+            }
+        } else {
+            smtpMessage = "SMTP not configured";
+        }
+
+        return com.servicedesk.monolith.channel.dto.EmailConnectionTestResult.partial(
+                imapSuccess, imapMessage, imapResponseTimeMs,
+                smtpSuccess, smtpMessage, smtpResponseTimeMs
+        );
+    }
+
+    /**
+     * Test IMAP connection
+     */
+    private void testImapConnection(EmailConfiguration config) throws MessagingException {
+        Properties props = new Properties();
+        props.put("mail.store.protocol", config.getImapSsl() ? "imaps" : "imap");
+        props.put("mail.imaps.host", config.getImapHost());
+        props.put("mail.imaps.port", config.getImapPort());
+        props.put("mail.imaps.ssl.enable", config.getImapSsl());
+        props.put("mail.imaps.connectiontimeout", "10000"); // 10 seconds timeout
+        props.put("mail.imaps.timeout", "10000");
+        props.put("mail.imap.connectiontimeout", "10000");
+        props.put("mail.imap.timeout", "10000");
+
+        Session session = Session.getInstance(props);
+        Store store = null;
+        try {
+            store = session.getStore(config.getImapSsl() ? "imaps" : "imap");
+            store.connect(config.getImapHost(), config.getImapPort(), 
+                    config.getImapUsername(), config.getImapPassword());
+            
+            // Try to open the configured folder to verify access
+            Folder folder = store.getFolder(config.getImapFolder() != null ? config.getImapFolder() : "INBOX");
+            folder.open(Folder.READ_ONLY);
+            folder.close(false);
+        } finally {
+            if (store != null && store.isConnected()) {
+                store.close();
+            }
+        }
+    }
+
+    /**
+     * Test SMTP connection
+     */
+    private void testSmtpConnection(EmailConfiguration config) throws MessagingException {
+        Properties props = new Properties();
+        props.put("mail.smtp.host", config.getSmtpHost());
+        props.put("mail.smtp.port", config.getSmtpPort());
+        props.put("mail.smtp.auth", config.getSmtpAuth());
+        props.put("mail.smtp.connectiontimeout", "10000"); // 10 seconds timeout
+        props.put("mail.smtp.timeout", "10000");
+
+        if (config.getSmtpTls()) {
+            props.put("mail.smtp.starttls.enable", "true");
+        }
+        if (config.getSmtpSsl()) {
+            props.put("mail.smtp.ssl.enable", "true");
+        }
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(config.getSmtpUsername(), config.getSmtpPassword());
+            }
+        });
+
+        Transport transport = null;
+        try {
+            transport = session.getTransport("smtp");
+            transport.connect(config.getSmtpHost(), config.getSmtpPort(),
+                    config.getSmtpUsername(), config.getSmtpPassword());
+        } finally {
+            if (transport != null && transport.isConnected()) {
+                transport.close();
+            }
+        }
+    }
 }

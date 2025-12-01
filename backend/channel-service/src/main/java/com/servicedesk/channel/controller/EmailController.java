@@ -1,6 +1,7 @@
 package com.servicedesk.channel.controller;
 
 import com.servicedesk.channel.dto.EmailConfigurationDto;
+import com.servicedesk.channel.dto.EmailConnectionTestResult;
 import com.servicedesk.channel.dto.SendEmailRequest;
 import com.servicedesk.channel.entity.EmailConfiguration;
 import com.servicedesk.channel.entity.EmailMessage;
@@ -135,12 +136,17 @@ public class EmailController {
 
     @PostMapping("/configurations/{channelId}/test")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<String>> testConnection(@PathVariable String channelId) {
+    public ResponseEntity<ApiResponse<EmailConnectionTestResult>> testConnection(@PathVariable String channelId) {
         EmailConfiguration config = configRepository.findByChannelId(channelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Email configuration not found"));
 
-        // TODO: Implement connection test
-        return ResponseEntity.ok(ApiResponse.success("Connection test successful"));
+        EmailConnectionTestResult result = emailService.testConnection(config);
+        
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(ApiResponse.success(result));
+        } else {
+            return ResponseEntity.ok(ApiResponse.success(result));
+        }
     }
 
     private EmailConfigurationDto toDto(EmailConfiguration config) {
