@@ -6,7 +6,7 @@
 
     <parent>
         <groupId>com.servicedesk</groupId>
-        <artifactId>servicedesk-parent</artifactId>
+        <artifactId>servicedesk-platform</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>

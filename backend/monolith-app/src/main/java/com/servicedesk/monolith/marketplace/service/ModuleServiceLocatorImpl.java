@@ -1,5 +1,6 @@
 package com.servicedesk.monolith.marketplace.service;
-\nimport org.springframework.context.ApplicationEventPublisher;
+
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.servicedesk.monolith.marketplace.plugin.*;
 import lombok.RequiredArgsConstructor;

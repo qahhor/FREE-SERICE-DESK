@@ -1,5 +1,6 @@
 package com.servicedesk.monolith.channel.service;
-\nimport org.springframework.context.ApplicationEventPublisher;
+
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.servicedesk.monolith.channel.dto.SendEmailRequest;
 import com.servicedesk.monolith.channel.entity.EmailConfiguration;
