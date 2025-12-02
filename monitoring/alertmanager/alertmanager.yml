@@ -4,6 +4,8 @@
 
 global:
   # SMTP configuration for email alerts
+  # NOTE: For production, consider using Docker secrets or external secret management
+  # (e.g., HashiCorp Vault, AWS Secrets Manager) for sensitive SMTP credentials
   smtp_smarthost: '${SMTP_HOST:-smtp.gmail.com}:${SMTP_PORT:-587}'
   smtp_from: '${SMTP_FROM:-alertmanager@servicedesk.local}'
   smtp_auth_username: '${SMTP_USERNAME:-}'

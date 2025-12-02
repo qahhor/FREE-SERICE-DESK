@@ -43,28 +43,36 @@ fi
 echo -e "${YELLOW}Generating secure secrets...${NC}"
 echo ""
 
+###########################################
+# Helper function for password generation
+###########################################
+generate_password() {
+    local length=${1:-24}
+    openssl rand -base64 $length | tr -d '\n' | tr -d '/' | tr -d '+'
+}
+
 # JWT Secret (64 characters for HS512)
 JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')
 echo -e "${GREEN}✓ JWT_SECRET generated${NC}"
 
 # Database password
-DB_PASSWORD=$(openssl rand -base64 24 | tr -d '\n' | tr -d '/' | tr -d '+')
+DB_PASSWORD=$(generate_password 24)
 echo -e "${GREEN}✓ DB_PASSWORD generated${NC}"
 
 # Redis password
-REDIS_PASSWORD=$(openssl rand -base64 24 | tr -d '\n' | tr -d '/' | tr -d '+')
+REDIS_PASSWORD=$(generate_password 24)
 echo -e "${GREEN}✓ REDIS_PASSWORD generated${NC}"
 
 # MinIO password
-MINIO_PASSWORD=$(openssl rand -base64 24 | tr -d '\n' | tr -d '/' | tr -d '+')
+MINIO_PASSWORD=$(generate_password 24)
 echo -e "${GREEN}✓ MINIO_PASSWORD generated${NC}"
 
 # Grafana password
-GRAFANA_PASSWORD=$(openssl rand -base64 16 | tr -d '\n' | tr -d '/' | tr -d '+')
+GRAFANA_PASSWORD=$(generate_password 16)
 echo -e "${GREEN}✓ GRAFANA_ADMIN_PASSWORD generated${NC}"
 
 # Elasticsearch password
-ELASTICSEARCH_PASSWORD=$(openssl rand -base64 24 | tr -d '\n' | tr -d '/' | tr -d '+')
+ELASTICSEARCH_PASSWORD=$(generate_password 24)
 echo -e "${GREEN}✓ ELASTICSEARCH_PASSWORD generated${NC}"
 
 echo ""

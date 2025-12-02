@@ -161,8 +161,10 @@ services:
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-servicedesk}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-servicedesk123}
+      # NOTE: For production, ALWAYS set MINIO_ACCESS_KEY and MINIO_SECRET_KEY
+      # Generate with: openssl rand -base64 24
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY must be set}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY must be set}
     volumes:
       - minio_data:/data
     healthcheck:
